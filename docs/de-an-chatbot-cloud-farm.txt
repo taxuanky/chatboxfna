@@ -1,0 +1,356 @@
+﻿
+ĐỀ ÁN XÂY DỰNG
+CHATBOT AI NỘI BỘ
+Chuyên gia chăn nuôi lợn &amp; Trợ lý vận hành Cloud Farm
+Tài liệu định hướng phương pháp, dữ liệu, mô hình AI,quy trình xây dựng và lộ trình triển khai
+Phiên bản 1.0 | Tháng 11/2026
+
+1. Tóm tắt đề án
+Mục tiêu là xây dựng một chatbot AI dùng nội bộ cho trang trại, có khả năng hỗ trợ nhân viên và quản lý trong hai nhóm nghiệp vụ: (1) kiến thức chuyên sâu về chăn nuôi lợn; (2) hướng dẫn, giải thích và xử lý tình huống khi sử dụng phần mềm Cloud Farm hiện có.
+Định hướng đề xuất là dùng một mô hình ngôn ngữ lớn (LLM) làm nền tảng, kết hợp hai kho kiến thức riêng biệt và phương pháp RAG (Retrieval-Augmented Generation). Fine-tuning chỉ được xem xét ở giai đoạn sau, khi đã có tập câu hỏi – câu trả lời chuẩn do chuyên gia xác nhận.
+Nội dung
+Định hướng
+Người sử dụng
+Nhân viên và quản lý nội bộ trang trại.
+Phạm vi kiến thức
+Chăn nuôi lợn và vận hành Cloud Farm.
+Ngôn ngữ
+Tiếng Việt và tiếng Anh; giữ tài liệu gốc và bản dịch liên kết.
+Độ sâu tư vấn
+Tư vấn kỹ thuật, giải thích quy trình, phân tích tình huống và KPI.
+Phương pháp AI
+RAG trước; fine-tuning có kiểm soát khi dữ liệu đủ chất lượng.
+Ưu tiên giai đoạn đầu
+Nguồn dữ liệu, kho kiến thức, kiểm định chất lượng và độ tin cậy câu trả lời.
+Phạm vi tài liệu này chưa đi vào thiết kế API, kết nối phần mềm, phân quyền hệ thống hay kiến trúc hạ tầng chi tiết. Các nội dung đó chỉ nên triển khai sau khi xác định rõ dữ liệu và yêu cầu nghiệp vụ.
+2. Chatbot cần giải quyết việc gì?
+2.1. Trợ lý chăn nuôi lợn
+Giải thích kiến thức về giống, sinh sản, nái hậu bị, nái mang thai, nái nuôi con và lợn con.
+Hỗ trợ kiến thức nuôi thịt, dinh dưỡng, thức ăn, tăng trọng, hệ số chuyển đổi thức ăn và hiệu quả sản xuất.
+Tra cứu thông tin về bệnh, dấu hiệu cảnh báo, phòng bệnh, an toàn sinh học và vệ sinh chuồng trại.
+Giải thích các chỉ số sản xuất như ADG, FCR, tỷ lệ chết, tỷ lệ đẻ, số con cai sữa và năng suất nái.
+Phân tích tình huống dựa trên dữ liệu người dùng cung cấp, đồng thời nêu rõ giả định và dữ liệu còn thiếu.
+2.2. Trợ lý phần mềm Cloud Farm
+Hướng dẫn người dùng thao tác theo đúng tài liệu và phiên bản Cloud Farm đang sử dụng.
+Giải thích ý nghĩa trường dữ liệu, trạng thái, quy trình nghiệp vụ và báo cáo.
+Hướng dẫn kiểm tra các lỗi thường gặp dựa trên FAQ, ticket và hướng dẫn đã được xác nhận.
+Giải thích cách đọc báo cáo và KPI; phân biệt số liệu ghi nhận với cách diễn giải nghiệp vụ.
+Nhận biết trường hợp không đủ căn cứ và chuyển người dùng đến bộ phận phụ trách.
+Lưu ý: chưa có tên nhà cung cấp hoặc bộ tài liệu Cloud Farm cụ thể trong đề án. Vì vậy, không được tự tạo tên menu, chức năng, trường dữ liệu hay quy trình. Phần này phải được xây dựng từ tài liệu thật do công ty hoặc nhà cung cấp cung cấp.
+3. Nguyên tắc thiết kế kiến thức
+Nguyên tắc
+Cách áp dụng
+Tách hai miền kiến thức
+Kho chăn nuôi lợn và kho Cloud Farm có taxonomy, nguồn và quy trình duyệt riêng; có thể dùng chung LLM.
+Có nguồn dẫn chứng
+Câu trả lời chuyên môn cần truy xuất được tài liệu, phiên bản và đoạn nội dung hỗ trợ.
+Ưu tiên dữ liệu đã duyệt
+Tài liệu chưa xác minh không được xem ngang hàng với tài liệu chính thức.
+Quản lý thời hạn
+Ghi ngày phát hành, ngày rà soát, phiên bản và thời hạn hiệu lực khi có.
+Song ngữ có kiểm soát
+Lưu bản gốc, bản dịch và liên kết giữa hai bản; thống nhất thuật ngữ.
+Biết từ chối khi thiếu căn cứ
+Chatbot phải nói rõ chưa đủ dữ liệu, không tự suy diễn thành kết luận.
+An toàn thú y
+Không tự ý đưa phác đồ, liều thuốc hoặc lịch vaccine chưa được chuyên gia thú y duyệt.
+4. Mô hình AI được đề xuất
+4.1. LLM – mô hình ngôn ngữ nền tảng
+LLM là thành phần hiểu câu hỏi, tổng hợp thông tin và tạo câu trả lời. Có thể lựa chọn mô hình thương mại hoặc mô hình triển khai riêng sau khi đánh giá chất lượng tiếng Việt, khả năng suy luận, chi phí, bảo mật và điều kiện sử dụng dữ liệu.
+Không nên chọn mô hình chỉ dựa trên tên gọi hoặc quảng cáo. Cần kiểm thử bằng bộ câu hỏi thực tế của trang trại và Cloud Farm trước khi quyết định.
+4.2. RAG – truy xuất kiến thức trước khi trả lời
+RAG giúp chatbot tìm các đoạn tài liệu liên quan trong kho kiến thức rồi cung cấp chúng làm căn cứ cho LLM trả lời. Khi tài liệu được cập nhật, có thể cập nhật kho tri thức mà không cần huấn luyện lại toàn bộ mô hình.
+Bước
+Mô tả
+1. Nhận câu hỏi
+Người dùng hỏi bằng tiếng Việt hoặc tiếng Anh.
+2. Xác định miền
+Phân loại câu hỏi thuộc chăn nuôi lợn, Cloud Farm hoặc cần cả hai.
+3. Tìm tài liệu
+Tìm đoạn liên quan trong đúng kho kiến thức, ưu tiên tài liệu đã duyệt và còn hiệu lực.
+4. Tạo câu trả lời
+LLM tổng hợp câu trả lời dựa trên nội dung truy xuất được.
+5. Kiểm tra căn cứ
+Trả nguồn tham khảo; nêu giới hạn hoặc yêu cầu bổ sung dữ liệu nếu chưa đủ.
+4.3. Fine-tuning – tinh chỉnh cách trả lời
+Fine-tuning không phải nơi lưu toàn bộ tài liệu chuyên môn. Nó phù hợp hơn để điều chỉnh phong cách, cấu trúc câu trả lời, cách đặt câu hỏi làm rõ, quy tắc phân tích và định dạng đầu ra.
+Chỉ thử fine-tuning khi có khoảng 200–500 cặp hỏi – đáp chất lượng cao, đã được chuyên gia hoặc chủ nghiệp vụ xác nhận.
+Không đưa tài liệu thay đổi thường xuyên như hướng dẫn phiên bản mới, giá thức ăn, quy định pháp luật hay quy trình mới vào fine-tuning thay cho RAG.
+So sánh mô hình trước và sau tinh chỉnh trên cùng bộ test; chỉ giữ fine-tuning nếu cải thiện rõ rệt.
+4.4. Vì sao chọn Hybrid?
+Hybrid trong đề án này có nghĩa là kết hợp RAG và fine-tuning có kiểm soát, không có nghĩa bắt buộc phải dùng hai mô hình AI riêng. RAG đảm nhiệm kiến thức có nguồn và cập nhật; fine-tuning (nếu cần) điều chỉnh cách chatbot thực hiện nhiệm vụ.
+5. Xây dựng kho kiến thức
+5.1. Kho kiến thức chăn nuôi lợn
+Nhóm
+Nội dung cần thu thập
+PIG-01 Giống và di truyền
+Đặc tính giống, chọn giống, chỉ tiêu nái/đực, tài liệu từ đơn vị giống.
+PIG-02 Sinh sản
+Phối giống, phát hiện động dục, mang thai, đẻ, chăm sóc nái.
+PIG-03 Lợn con
+Sơ sinh, sữa đầu, úm, cai sữa, nursery.
+PIG-04 Nuôi thịt
+Grower/finisher, phân đàn, tăng trọng, xuất bán.
+PIG-05 Dinh dưỡng
+Nhu cầu dinh dưỡng theo giai đoạn và khối lượng.
+PIG-06 Thức ăn
+Nguyên liệu, công thức, chất lượng, bảo quản và cấp phát.
+PIG-07 Thú y
+Khám, chẩn đoán, điều trị, thuốc và vaccine; bắt buộc duyệt chuyên gia.
+PIG-08 Bệnh
+Bệnh truyền nhiễm/không truyền nhiễm, dấu hiệu, chẩn đoán và phòng ngừa.
+PIG-09 An toàn sinh học
+Kiểm soát người, xe, con giống, vệ sinh và sát trùng.
+PIG-10 Môi trường
+Nhiệt độ, độ ẩm, thông gió, nước và chất thải.
+PIG-11 KPI sản xuất
+ADG, FCR, tỷ lệ chết, tỷ lệ đẻ, số con cai sữa, năng suất.
+PIG-12 Kinh tế trang trại
+Giá thành, chi phí thức ăn, hiệu quả đàn và phân tích kinh tế.
+5.2. Kho kiến thức Cloud Farm
+Nhóm
+Tài liệu cần có
+CF-01 User Guide
+Manual chính thức theo phiên bản; hướng dẫn màn hình và chức năng.
+CF-02 SOP
+Quy trình nội bộ, trách nhiệm, bước thao tác và trường hợp ngoại lệ.
+CF-03 Đào tạo
+Slide, video, bản ghi đào tạo và transcript được phép sử dụng.
+CF-04 FAQ/Ticket
+Câu hỏi hỗ trợ, lỗi thường gặp, nguyên nhân và cách xử lý đã xác nhận.
+CF-05 Kiến thức chuyên gia
+Ý nghĩa trường dữ liệu, quy tắc nghiệp vụ, cách tính KPI và ngoại lệ.
+Các phân hệ cần lập danh sách theo sản phẩm thực tế: quản lý đàn, chuồng/ô, sinh sản, thức ăn, thú y, chết/loại thải, báo cáo/KPI, tài khoản/phân quyền và xử lý lỗi. Chỉ đưa vào danh mục những phân hệ thực sự tồn tại trong Cloud Farm của công ty.
+6. Nguồn dữ liệu nên sử dụng
+6.1. Nguồn chăn nuôi lợn
+Nguồn
+Giá trị sử dụng
+Lưu ý
+Merck Veterinary Manual – merckvetmanual.com
+Thú y, dinh dưỡng, sinh sản, chăm sóc và phòng bệnh.
+Ghi ngày cập nhật của từng bài; kiểm tra điều khoản sử dụng.
+PIC – pic.com/resources
+Hướng dẫn dinh dưỡng, chăm sóc nái, wean-to-finish và kỹ thuật.
+Nguồn từ doanh nghiệp ngành giống; đối chiếu với nguồn độc lập.
+Kansas State University – Swine Nutrition Guide
+Tài liệu đại học về dinh dưỡng lợn và hướng dẫn thực hành.
+Ghi rõ phạm vi và điều kiện áp dụng.
+WOAH – woah.org
+Thông tin bệnh, an toàn sinh học, tài liệu kỹ thuật chính thức.
+Ưu tiên tài liệu hiện hành về dịch bệnh.
+FAO – fao.org
+Tài liệu chăn nuôi, dinh dưỡng, quản lý và báo cáo.
+Kiểm tra bối cảnh địa lý; không áp dụng máy móc tài liệu khu vực khác.
+Cổng văn bản Chính phủ – vanban.chinhphu.vn
+Văn bản pháp luật Việt Nam.
+Kiểm tra hiệu lực, sửa đổi, thay thế và văn bản hợp nhất.
+CSDL pháp luật – vbpl.moj.gov.vn
+Tra cứu văn bản quy phạm pháp luật.
+Đối chiếu với nguồn công bố chính thức.
+6.2. Nguồn Cloud Farm
+Manual/user guide chính thức từ nhà cung cấp.
+SOP, quy trình thao tác và biểu mẫu nội bộ đã được phê duyệt.
+Slide, video và nội dung đào tạo người dùng.
+FAQ, ticket hỗ trợ, nhật ký sự cố đã loại bỏ thông tin nhạy cảm.
+Phỏng vấn quản lý trang trại, key user, nhân viên hỗ trợ và người hiểu rõ quy tắc nghiệp vụ.
+7. Quy trình thu thập và chuẩn hóa dữ liệu
+Giai đoạn
+Việc thực hiện
+Đầu ra
+1. Lập danh sách nguồn
+Ghi tên nguồn, chủ sở hữu, URL, ngôn ngữ, chủ đề, quyền sử dụng và mức ưu tiên.
+Danh mục nguồn.
+2. Thu thập
+Tải tài liệu được phép; lưu file gốc; ghi ngày thu thập và phiên bản.
+Thư mục tài liệu gốc.
+3. Trích xuất
+Đọc PDF/DOCX/HTML; OCR tài liệu scan; trích bảng, hình và chú thích.
+Văn bản có cấu trúc.
+4. Dịch thuật
+Tạo bản dịch khi cần; giữ nguyên bản gốc; gắn liên kết hai chiều.
+Bản gốc + bản dịch.
+5. Phân loại
+Gắn miền kiến thức, chủ đề, giai đoạn vật nuôi hoặc phân hệ phần mềm.
+Tài liệu có taxonomy.
+6. Kiểm định
+Chuyên gia kiểm tra tính đúng, cập nhật, đầy đủ và quyền sử dụng.
+Tài liệu Approved/Rejected.
+7. Đưa vào kho
+Chỉ đưa tài liệu đã đạt yêu cầu vào tập tri thức phục vụ chatbot.
+Knowledge base đã duyệt.
+8. Rà soát định kỳ
+Kiểm tra tài liệu hết hạn, phiên bản mới, văn bản thay thế và phản hồi người dùng.
+Kho kiến thức được cập nhật.
+8. Chuẩn metadata cho từng tài liệu
+Mỗi tài liệu nên có thông tin nhận dạng và kiểm soát tối thiểu:
+document_id: mã tài liệu duy nhất.
+domain/category/subcategory: miền và chủ đề kiến thức.
+title/source/source_url: tên tài liệu, nguồn và đường dẫn.
+language/translated_language: ngôn ngữ gốc và ngôn ngữ bản dịch.
+publication_date/version/last_reviewed: ngày phát hành, phiên bản và ngày rà soát.
+license_status: trạng thái quyền sử dụng.
+verification_status/reviewer: trạng thái kiểm định và người duyệt.
+valid_from/valid_to: thời gian hiệu lực nếu áp dụng.
+animal_stage hoặc software_module: giai đoạn vật nuôi hoặc phân hệ Cloud Farm liên quan.
+Ví dụ mã tài liệu: PIG-NUT-001 cho tài liệu dinh dưỡng; PIG-DIS-001 cho bệnh; CF-GUIDE-001 cho hướng dẫn Cloud Farm.
+9. Tiêu chuẩn kiểm định chất lượng
+Tiêu chí
+Trọng số
+Câu hỏi đánh giá
+Độ tin cậy nguồn
+20
+Nguồn có thẩm quyền, tác giả/đơn vị rõ ràng không?
+Độ chính xác kỹ thuật
+25
+Thông tin có đúng, đủ điều kiện áp dụng và không mâu thuẫn không?
+Tính cập nhật
+15
+Có phiên bản/ngày rà soát; còn hiệu lực không?
+Tính đầy đủ
+15
+Có đủ ngữ cảnh, bảng biểu, phụ lục và giới hạn áp dụng không?
+Khả năng truy xuất
+15
+Có thể truy lại nguồn, file, phiên bản và người duyệt không?
+Chất lượng ngôn ngữ
+10
+Câu chữ rõ, thuật ngữ nhất quán, bản dịch chính xác không?
+Điểm
+Kết quả
+Quy tắc
+85–100
+Có thể Approved
+Không có điều kiện loại trừ; nội dung rủi ro cao vẫn cần chuyên gia duyệt.
+70–84
+In Review
+Cần bổ sung hoặc chuyên gia kiểm tra.
+Dưới 70
+Rejected
+Không đưa vào kho kiến thức chính thức.
+Điều kiện loại trừ dù điểm cao: không rõ nguồn; OCR sai/mất bảng; thiếu phiên bản/ngày với nội dung cần thời hạn; mâu thuẫn quy định hiện hành; hướng dẫn thuốc/liều/phác đồ chưa được chuyên gia có thẩm quyền duyệt.
+10. Quy tắc trả lời an toàn cho chatbot
+Trả lời dựa trên tài liệu đã truy xuất; nêu nguồn hoặc tên tài liệu khi có thể.
+Nếu tài liệu không đủ để kết luận, nói rõ thiếu dữ liệu và hỏi thông tin cần thiết.
+Không khẳng định chẩn đoán bệnh chỉ từ mô tả ngắn; hướng dẫn cách cô lập/giảm nguy cơ và liên hệ thú y khi có dấu hiệu nghiêm trọng.
+Không tự đề xuất liều thuốc, phác đồ điều trị hoặc lịch vaccine khi chưa có quy trình được duyệt.
+Với Cloud Farm, không bịa tên nút, menu, trường dữ liệu hoặc quyền người dùng.
+Phân biệt hướng dẫn chung, SOP nội bộ và quy định pháp luật; nếu có xung đột, ưu tiên quy định có hiệu lực và quy trình đã được công ty phê duyệt.
+Không đưa dữ liệu cá nhân, mật khẩu, thông tin định danh nhạy cảm hoặc dữ liệu trang trại không được phép vào kho kiến thức.
+11. Bộ kiểm thử chất lượng chatbot
+Trước khi đưa vào sử dụng, cần tạo bộ câu hỏi có đáp án chuẩn do chuyên gia chăn nuôi và người phụ trách Cloud Farm xác nhận. Không lấy câu trả lời do chính chatbot tạo ra làm đáp án chuẩn.
+Nhóm kiểm thử
+Số câu khởi đầu
+Nội dung
+Dinh dưỡng
+30
+Nhu cầu theo giai đoạn, khẩu phần, thức ăn, FCR.
+Thú y và bệnh
+40
+Dấu hiệu, phòng bệnh, an toàn sinh học, tình huống cần chuyển chuyên gia.
+Chăm sóc và sinh sản
+30
+Nái, phối giống, đẻ, lợn con, cai sữa.
+An toàn sinh học
+20
+Kiểm soát người/xe, vệ sinh, sát trùng, cách ly.
+Sản xuất và KPI
+30
+ADG, FCR, tỷ lệ chết, năng suất và phân tích số liệu.
+Cloud Farm
+50
+Hướng dẫn thao tác, báo cáo, quyền, lỗi và tình huống nghiệp vụ.
+Các tiêu chí chấm: độ đúng chuyên môn; mức liên quan của tài liệu truy xuất; trích dẫn đúng; khả năng từ chối khi thiếu căn cứ; nhất quán tiếng Việt/tiếng Anh; mức độ an toàn; khả năng phân biệt hai miền kiến thức.
+Bắt buộc có câu test khó: tài liệu mâu thuẫn, tài liệu cũ, câu hỏi thiếu dữ liệu, câu hỏi ngoài phạm vi, câu hỏi rủi ro thú y và câu hỏi về chức năng Cloud Farm chưa có tài liệu.
+12. Lộ trình triển khai đề xuất
+Giai đoạn
+Công việc chính
+Điều kiện hoàn thành
+GĐ 1 – Xác định yêu cầu
+Chốt nhóm người dùng, tình huống sử dụng, chủ sở hữu kiến thức và phạm vi ưu tiên.
+Danh sách use case và người chịu trách nhiệm.
+GĐ 2 – Kiểm kê dữ liệu
+Thu thập nguồn, manual, SOP, tài liệu đào tạo, tài liệu kỹ thuật và quy định.
+Danh mục nguồn và danh mục tài liệu ban đầu.
+GĐ 3 – Chuẩn hóa kiến thức
+Trích xuất, OCR, dịch, phân loại, gắn metadata và xử lý phiên bản.
+Tập tài liệu sạch, có cấu trúc và truy xuất được.
+GĐ 4 – Kiểm định chuyên gia
+Duyệt nội dung chăn nuôi, thú y, pháp lý và nghiệp vụ Cloud Farm.
+Kho tài liệu Approved.
+GĐ 5 – Xây dựng RAG thử nghiệm
+Tạo chatbot thử nghiệm dùng kho kiến thức đã duyệt; kiểm tra truy xuất và trích dẫn.
+Bản thử nghiệm trả lời có căn cứ.
+GĐ 6 – Kiểm thử và hiệu chỉnh
+Chạy bộ QA, phân tích lỗi, bổ sung tài liệu và cải thiện cách trả lời.
+Đạt ngưỡng chất lượng do doanh nghiệp đặt ra.
+GĐ 7 – Đánh giá fine-tuning
+Nếu đủ 200–500 Q&amp;A chuẩn, thử tinh chỉnh cách trả lời và so sánh.
+Chỉ áp dụng nếu cải thiện được đo lường.
+GĐ 8 – Vận hành kiến thức
+Thiết lập người phụ trách cập nhật, rà soát phiên bản và tiếp nhận phản hồi.
+Quy trình quản trị tri thức liên tục.
+13. Nhân sự và trách nhiệm cần có
+Vai trò
+Trách nhiệm
+Chủ dự án
+Chốt mục tiêu, phạm vi, ưu tiên, ngân sách và tiêu chí nghiệm thu.
+Chuyên gia chăn nuôi
+Duyệt kiến thức kỹ thuật, dinh dưỡng, sinh sản và quản lý đàn.
+Bác sĩ thú y/người có thẩm quyền
+Duyệt nội dung bệnh, thuốc, vaccine, phác đồ và an toàn dịch bệnh.
+Key user Cloud Farm
+Xác nhận thao tác, quy trình, báo cáo, trường dữ liệu và lỗi thường gặp.
+Quản trị dữ liệu tri thức
+Quản lý nguồn, metadata, phiên bản, bản dịch và trạng thái duyệt.
+Nhóm AI/IT
+Lựa chọn LLM, xây dựng RAG, kiểm thử, theo dõi chất lượng và vận hành kỹ thuật.
+14. Rủi ro chính và cách kiểm soát
+Rủi ro
+Hậu quả
+Biện pháp
+Tài liệu sai hoặc lỗi thời
+Chatbot tư vấn sai.
+Duyệt chuyên gia, quản lý phiên bản, rà soát định kỳ.
+Dịch thuật sai thuật ngữ
+Hiểu sai kỹ thuật.
+Glossary song ngữ và người chuyên môn kiểm tra.
+Tài liệu thương mại thiên lệch
+Khuyến nghị không khách quan.
+Đánh dấu nguồn thương mại và đối chiếu nguồn độc lập.
+Cloud Farm thiếu manual
+Chatbot bịa chức năng.
+Chỉ trả lời theo tài liệu thật; yêu cầu key user xác nhận.
+RAG truy xuất sai đoạn
+Câu trả lời thiếu hoặc sai căn cứ.
+Bộ test retrieval, phân loại miền và kiểm tra trích dẫn.
+Dữ liệu nhạy cảm trong ticket
+Rò rỉ thông tin.
+Ẩn danh, lọc dữ liệu và kiểm soát quyền sử dụng.
+Fine-tuning quá sớm
+Ghi nhớ thông tin sai/lỗi thời.
+Làm RAG trước; chỉ tinh chỉnh với dữ liệu chuẩn đã duyệt.
+15. Kết luận và thứ tự ưu tiên
+Để tránh đầu tư sai hướng, dự án nên bắt đầu bằng việc xây dựng nền tảng tri thức chứ không bắt đầu bằng việc tích hợp phần mềm.
+Ưu tiên 1: xác định chính xác các câu hỏi chatbot phải giải quyết.
+Ưu tiên 2: thu thập tài liệu gốc về chăn nuôi lợn và Cloud Farm.
+Ưu tiên 3: xây dựng taxonomy, metadata, glossary và quy trình duyệt.
+Ưu tiên 4: tạo bộ câu hỏi – đáp án chuẩn và kho tài liệu đã duyệt.
+Ưu tiên 5: triển khai RAG thử nghiệm, đo chất lượng bằng bộ test.
+Ưu tiên 6: chỉ cân nhắc fine-tuning khi có đủ dữ liệu chuẩn và có bằng chứng cải thiện.
+Kết quả mong muốn của giai đoạn nền tảng: một kho kiến thức song ngữ, có nguồn gốc và phiên bản; hai miền kiến thức không bị lẫn; có chuyên gia chịu trách nhiệm duyệt; có bộ test đủ đại diện để đánh giá chatbot trước khi mở rộng.
+Phụ lục A – Cấu trúc thư mục kiến thức gợi ý
+Knowledge_Base/  01_Pig_Farming/    01_Genetics_Breeding/    02_Reproduction/    03_Piglet_Management/    04_Grow_Finish/    05_Nutrition/    06_Feed/    07_Veterinary/    08_Diseases/    09_Biosecurity/    10_Environment/    11_Production_KPI/    12_Farm_Economics/  02_Cloud_Farm/    01_User_Guide/    02_SOP/    03_Training/    04_FAQ_Tickets/    05_Business_Rules/    06_Reports_KPI/    07_Troubleshooting/  03_Vietnam_Legal/    Animal_Husbandry/    Veterinary/    Environment/  04_Bilingual_Glossary/  05_Expert_Reviewed_QA/  06_Test_Dataset/  07_Archived_Superseded/
+Phụ lục B – Danh sách nguồn tham khảo khởi đầu
+Merck Veterinary Manual: https://www.merckvetmanual.com/
+Merck – Feeding Levels and Practices in Pigs: https://www.merckvetmanual.com/management-and-nutrition/nutrition-pigs/feeding-levels-and-practices-in-pigs
+Merck – Preventive Health Care and Husbandry of Pigs: https://www.merckvetmanual.com/management-and-nutrition/preventive-health-care-and-husbandry-of-pigs/preventive-health-care-and-husbandry-of-pigs
+PIC Resources: https://www.pic.com/resources/
+PIC Swine Nutrition and Feeding Guidelines – Metric: https://www.pic.com/resources/pic-nutrition-and-feeding-guidelines-metric/
+Kansas State University – Swine Nutrition Guide: https://www.asi.k-state.edu/extension/swine/swinenutritionguide/index.html
+WOAH – African Swine Fever: https://www.woah.org/en/disease/african-swine-fever/
+WOAH – Classical Swine Fever: https://www.woah.org/en/disease/classical-swine-fever/
+FAO: https://www.fao.org/
+Cổng văn bản Chính phủ: https://vanban.chinhphu.vn/
+Cơ sở dữ liệu quốc gia về văn bản pháp luật: https://vbpl.moj.gov.vn/
+FAOLEX: https://faolex.fao.org/
+Danh sách trên là điểm khởi đầu để kiểm kê và đánh giá. Trước khi thu thập hàng loạt hoặc đưa tài liệu vào kho AI, cần kiểm tra điều khoản sử dụng, quyền lưu trữ và quyền sử dụng cho mục đích RAG/fine-tuning. Với văn bản pháp luật, phải kiểm tra hiệu lực và văn bản sửa đổi/thay thế tại thời điểm sử dụng.
