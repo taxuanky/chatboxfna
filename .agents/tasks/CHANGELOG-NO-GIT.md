@@ -89,3 +89,27 @@ be initialized later by the owner against this same file tree.
   became non-nullable `number`; `cfSignal` uses the R2-M8 definition extended with `method='user'`;
   no `--no-reuse-vectors` flag; the Dockerfile stays in scope but is labelled "not accepted/untested"
   while the `TRUSTED_PROXY=false` branch keeps its unit tests. No git commands run.
+
+- docs(review): design review round 3 — rewrote `.agents/tasks/design-review.md` (narrative) and
+  `.agents/tasks/design-review.json` (machine verdict). Verdict `CHANGES_REQUESTED`: 2 HIGH,
+  13 MEDIUM, 6 NIT (ids `R3-*`, so they never collide with the `[H1]`…`[N4]` and `[R2-*]` tags
+  already embedded in design.md). All 21 round-2 findings have real traces in the text; the two
+  HIGH findings are gaps *inside* two of those fixes.
+  R3-H1: the R2-H2 rule "keep searching cloud_farm so the §12.4 guard always runs" has no field to
+  live in — `searched_domains` belongs to `RetrievalResult`, `RouterResult` has no equivalent, and
+  `retrieve()` is called with `router.domains`. Two further paths make the guard unreachable even
+  as written: a user-pinned `domain: 'pig_farming'` and a tier-2 `llm` verdict of `pig_farming`
+  while `cfScore > 0` both leave `cfSignal === true` with cloud_farm never searched. Fix: make
+  `cfSignal === true ⇒ 'cloud_farm' ∈ searched_domains` an invariant, always include cloud_farm
+  when the CF store is empty, and let `retrieve()` compute the field from `RouterResult`.
+  R3-H2: `findDosages()` only matches digit + unit, but Ch.10 rule 4 also forbids *protocols* and
+  *vaccine schedules* — `tiêm vaccine lúc 3 tuần tuổi, nhắc lại sau 4 tuần`, `2 lần/ngày` and
+  `dùng kháng sinh … trong vài ngày` all return empty, so they stream straight to the user while
+  §20 still claims rule 4 is fully code-enforced. Fix: a third `protocol` tier plus week/frequency
+  units and spelled-out numbers, with `protocol` items grounded only when `approvedVetBasis()` is
+  non-empty, and §20 downgraded to the honest "mức máy" wording already used for rule 3.
+  Verified by running: the 7 Ch.10 rules in design.md match the proposal byte-for-byte and in order
+  (both files NFC, BOM `EF BB BF` present, LF only, each marker unique, exactly 7 extracted lines);
+  `.gitignore` still carries only the `data/kb-index.json` line to remove and nothing matching
+  `*.bin`; Node v24.19.0, npm 11.17.0, Git present outside PATH; clock now reads 2026-11-06, so the
+  `2026-11-01` sample dates stay in the past. No git commands run.
