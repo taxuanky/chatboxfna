@@ -113,3 +113,27 @@ be initialized later by the owner against this same file tree.
   `.gitignore` still carries only the `data/kb-index.json` line to remove and nothing matching
   `*.bin`; Node v24.19.0, npm 11.17.0, Git present outside PATH; clock now reads 2026-11-06, so the
   `2026-11-01` sample dates stay in the past. No git commands run.
+
+- setup: khởi tạo pha implement — thư mục .agents\tasks sẵn sàng, đã xác nhận 5 tài liệu đầu vào đọc được.
+
+- feat(FEAT-001): nền tảng — scaffold Next.js 15.5.29 + React 19 + Tailwind 3.4 + Vitest 3,
+  hai thay đổi repo bắt buộc (bỏ `data/kb-index.json` khỏi `.gitignore`; thêm `.gitattributes`
+  đúng 3 dòng để `core.autocrlf` trên Windows không phá `kb-vectors.bin` âm thầm), kiểu dùng
+  chung `lib/kb/types.ts` + `lib/llm/types.ts` + `lib/embedding/types.ts` (đã áp 8 finding
+  vòng 3: `ContextChunks`/`toContextChunks`, `excluded_expired` theo miền, ba field truy vết
+  bản dịch/thay thế, `ctx: Ctx` thay `signal`, `finish_reason: 'refused'`, `vectors_file`,
+  `Notice.code` còn đúng 5 mã), `lib/config/env.ts` (lười, KHÔNG throw lúc import; key chỉ
+  validate `min(1)`; 11 khoảng hợp lệ ⇒ ngoài khoảng thì mặc định + warn một lần; kiểm chéo
+  ngân sách prompt ngay lúc đọc env; mock ghi đè `RETRIEVAL_MIN_COSINE` về 0.05), `lib/util/*`
+  (`http.ts` là nơi chính sách retry sống: 429+5xx, không retry 400/401/403/404,
+  `canRetry(ctx, …)` nhận `ctx` qua THAM SỐ), và hai họ adapter LLM + embedding kèm `mock`.
+  **L2-normalize nằm ở TẦNG ADAPTER** (`lib/embedding/{gemini,openai-compatible,mock}.ts`),
+  trên MỌI vector, ở CẢ `kind:'document'` VÀ `kind:'query'` — KHÔNG ở `scripts/ingest.ts`
+  (R3-M7): vector Gemini 768 chiều đo được chuẩn 0,592158 nên chỉ normalize lúc ingest thì
+  vector câu hỏi vẫn lệch và RAG xếp hạng sai tài liệu mà không crash, không log.
+  Đã kiểm chứng thật 4 giả định §21.2 và ghi vào `verify-gemini.md` mục 6: react-markdown@9.1.0
+  escape HTML thô (không có `rehype-raw`), `outputFileTracingIncludes` top-level được Next
+  15.5.29 nhận, `NextRequest.ip` và `.geo` đã bị bỏ, và trần Hobby là **300s** chứ không phải
+  60s — giữ `DEADLINE_MS = 50_000` với `maxDuration = 60` tường minh, lý do ghi ở
+  `docs/MAPPING.md`. Xác minh: typecheck 0 lỗi; 10 file / 123 test pass; `next lint` sạch;
+  `next build` exit 0; `.gitignore` không còn dòng `kb-index`. Không chạy lệnh git nào.

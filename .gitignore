@@ -35,9 +35,6 @@ coverage/
 # vercel / deployment
 .vercel/
 
-# prebuilt knowledge-base index (decision pending: commit or not)
-data/kb-index.json
-
 # editor & OS
 .DS_Store
 Thumbs.db

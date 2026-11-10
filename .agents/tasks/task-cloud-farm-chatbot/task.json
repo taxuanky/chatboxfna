@@ -1,0 +1,14 @@
+{
+  "task_id": "task-cloud-farm-chatbot",
+  "task_description": "Hiện thực hoá chatbot AI nội bộ cho trang trại lợn và phần mềm Cloud Farm theo đặc tả .agents/tasks/design.md (22 mục) và đóng đủ 21 finding của .agents/tasks/design-review.json (2 HIGH, 13 MEDIUM, 6 NIT). Sản phẩm: app Next.js 15 chạy được, UI tiếng Việt responsive mobile, RAG hai miền không trộn, guard an toàn thú y cưỡng chế bằng code, npm run ingest, npm run eval, kho knowledge/ theo Phụ lục A với 02_Cloud_Farm rỗng nội dung, README tiếng Việt, docs/MAPPING.md, .gitattributes và .gitignore đã sửa. Kế hoạch chi tiết 33 hạng mục ở .agents/tasks/plan.md.",
+  "status": "pending",
+  "feature_order": [
+    "FEAT-001",
+    "FEAT-002",
+    "FEAT-003",
+    "FEAT-004",
+    "FEAT-005",
+    "FEAT-006"
+  ],
+  "blocked_reason": null
+}

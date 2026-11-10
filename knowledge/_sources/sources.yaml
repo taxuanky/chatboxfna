@@ -1,0 +1,156 @@
+# Danh mục nguồn tham khảo khởi đầu — Phụ lục B của đề án.
+#
+# ĐÂY LÀ DANH MỤC METADATA, KHÔNG PHẢI NỘI DUNG.
+# Không crawl, không copy nội dung từ các nguồn dưới đây vào repo. Ch.7 giai đoạn 1 chỉ yêu
+# cầu "ghi tên nguồn, chủ sở hữu, URL, ngôn ngữ, chủ đề, quyền sử dụng và mức ưu tiên" — tức
+# đúng những gì file này chứa. Phụ lục B yêu cầu kiểm tra điều khoản sử dụng, quyền lưu trữ
+# và quyền dùng cho mục đích RAG/fine-tuning TRƯỚC KHI thu thập.
+#
+# `license_status: needs_review` cho CẢ 12 MỤC là trạng thái đúng ở thời điểm này, không
+# phải việc chưa làm xong: chưa có mục nào được kiểm điều khoản sử dụng. `npm run ingest` in
+# một cảnh báo không tắt được về điều này ở mỗi lần chạy.
+
+sources:
+  - id: SRC-001
+    name: Merck Veterinary Manual
+    url: https://www.merckvetmanual.com/
+    owner: Merck & Co., Inc.
+    language: en
+    topics: [veterinary, nutrition, reproduction, disease_prevention]
+    license_status: needs_review
+    priority: high
+    notes: >
+      Trang chủ của bộ cẩm nang thú y. Ghi ngày cập nhật của từng bài khi tham chiếu.
+      Kiểm tra điều khoản sử dụng trước khi thu thập; chưa được phép đưa nội dung vào kho.
+
+  - id: SRC-002
+    name: Merck – Feeding Levels and Practices in Pigs
+    url: https://www.merckvetmanual.com/management-and-nutrition/nutrition-pigs/feeding-levels-and-practices-in-pigs
+    owner: Merck & Co., Inc.
+    language: en
+    topics: [nutrition, feeding_practice]
+    license_status: needs_review
+    priority: high
+    notes: >
+      Bài chuyên đề về mức ăn và thực hành cho ăn. Đối chiếu với điều kiện Việt Nam trước
+      khi dùng làm căn cứ; chưa được phép đưa nội dung vào kho.
+
+  - id: SRC-003
+    name: Merck – Preventive Health Care and Husbandry of Pigs
+    url: https://www.merckvetmanual.com/management-and-nutrition/preventive-health-care-and-husbandry-of-pigs/preventive-health-care-and-husbandry-of-pigs
+    owner: Merck & Co., Inc.
+    language: en
+    topics: [preventive_health, husbandry, biosecurity]
+    license_status: needs_review
+    priority: high
+    notes: >
+      Bài chuyên đề về phòng bệnh và quản lý. Mọi nội dung liên quan thuốc, liều và lịch
+      vaccine phải do chuyên gia có thẩm quyền duyệt trước khi vào kho (Ch.10 quy tắc 4).
+
+  - id: SRC-004
+    name: PIC Resources
+    url: https://www.pic.com/resources/
+    owner: Pig Improvement Company (PIC)
+    language: en
+    topics: [genetics, nutrition, sow_management, wean_to_finish]
+    license_status: needs_review
+    priority: medium
+    notes: >
+      Nguồn từ doanh nghiệp ngành giống nên có định hướng thương mại; đối chiếu với nguồn
+      độc lập trước khi dùng. Đánh dấu source_bias là commercial nếu đưa vào kho.
+
+  - id: SRC-005
+    name: PIC Swine Nutrition and Feeding Guidelines – Metric
+    url: https://www.pic.com/resources/pic-nutrition-and-feeding-guidelines-metric/
+    owner: Pig Improvement Company (PIC)
+    language: en
+    topics: [nutrition, feeding_guidelines]
+    license_status: needs_review
+    priority: medium
+    notes: >
+      Bản hệ mét của hướng dẫn dinh dưỡng, tiện đối chiếu với số liệu trong nước. Nguồn
+      thương mại; cần đối chiếu nguồn độc lập và kiểm điều khoản sử dụng.
+
+  - id: SRC-006
+    name: Kansas State University – Swine Nutrition Guide
+    url: https://www.asi.k-state.edu/extension/swine/swinenutritionguide/index.html
+    owner: Kansas State University
+    language: en
+    topics: [nutrition, extension_guidance]
+    license_status: needs_review
+    priority: medium
+    notes: >
+      Tài liệu khuyến nông của đại học. Ghi rõ phạm vi và điều kiện áp dụng khi tham chiếu;
+      điều kiện khí hậu và nguyên liệu khác Việt Nam.
+
+  - id: SRC-007
+    name: WOAH – African Swine Fever
+    url: https://www.woah.org/en/disease/african-swine-fever/
+    owner: World Organisation for Animal Health (WOAH)
+    language: en
+    topics: [disease, african_swine_fever, biosecurity]
+    license_status: needs_review
+    priority: high
+    notes: >
+      Nguồn kỹ thuật chính thức về dịch tả lợn châu Phi. Ưu tiên bản hiện hành; kiểm ngày
+      cập nhật mỗi lần tham chiếu vì thông tin dịch bệnh thay đổi.
+
+  - id: SRC-008
+    name: WOAH – Classical Swine Fever
+    url: https://www.woah.org/en/disease/classical-swine-fever/
+    owner: World Organisation for Animal Health (WOAH)
+    language: en
+    topics: [disease, classical_swine_fever, biosecurity]
+    license_status: needs_review
+    priority: high
+    notes: >
+      Nguồn kỹ thuật chính thức về dịch tả lợn cổ điển. Ưu tiên bản hiện hành; kiểm ngày
+      cập nhật mỗi lần tham chiếu.
+
+  - id: SRC-009
+    name: FAO
+    url: https://www.fao.org/
+    owner: Food and Agriculture Organization of the United Nations
+    language: en
+    topics: [husbandry, nutrition, management, reporting]
+    license_status: needs_review
+    priority: medium
+    notes: >
+      Tài liệu chăn nuôi và quản lý ở phạm vi quốc tế. Kiểm bối cảnh địa lý; không áp dụng
+      máy móc tài liệu của khu vực khác.
+
+  - id: SRC-010
+    name: Cổng thông tin văn bản Chính phủ
+    url: https://vanban.chinhphu.vn/
+    owner: Chính phủ Việt Nam
+    language: vi
+    topics: [legal, animal_husbandry, veterinary, environment]
+    license_status: needs_review
+    priority: high
+    notes: >
+      Nguồn công bố chính thức văn bản pháp luật. Phải kiểm hiệu lực, văn bản sửa đổi, thay
+      thế và văn bản hợp nhất tại thời điểm sử dụng (Ch.10 quy tắc 6).
+
+  - id: SRC-011
+    name: Cơ sở dữ liệu quốc gia về văn bản pháp luật
+    url: https://vbpl.moj.gov.vn/
+    owner: Bộ Tư pháp Việt Nam
+    language: vi
+    topics: [legal, animal_husbandry, veterinary, environment]
+    license_status: needs_review
+    priority: high
+    notes: >
+      Tra cứu văn bản quy phạm pháp luật. Đối chiếu với nguồn công bố chính thức trước khi
+      dẫn trong câu trả lời.
+
+  - id: SRC-012
+    name: FAOLEX
+    url: https://faolex.fao.org/
+    owner: Food and Agriculture Organization of the United Nations
+    language: en
+    topics: [legal, agriculture, international_comparison]
+    license_status: needs_review
+    priority: low
+    notes: >
+      Cơ sở dữ liệu pháp luật nông nghiệp quốc tế, dùng để so sánh. Không dùng thay cho
+      nguồn pháp luật Việt Nam khi trả lời câu hỏi về quy định trong nước.

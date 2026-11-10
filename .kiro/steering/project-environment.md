@@ -99,6 +99,10 @@ có chuẩn 1 (đặc tính Matryoshka). Hệ quả bắt buộc:
 
 - **Không hard-code API key**, không ghi key vào bất kỳ file nào trong repo, không in key
   ra log hay báo cáo. Nếu cần debug, chỉ in 6 ký tự đầu.
+- **Fixture trong test phải tự bịa hoàn toàn.** Không lấy bất kỳ ký tự nào của key thật,
+  kể cả vài ký tự đầu, kể cả khi phần còn lại đã thay bằng số 0. Dạng key (`AQ.` đứng
+  đầu, dài 53) là thông tin công khai và được phép dùng; các ký tự cụ thể của key thì
+  không. Đã có một fixture vi phạm điều này và bị chặn ngay trước lúc commit.
 - `.env.local` nằm trong `.gitignore` và **do orchestrator tạo**, các bước workflow chỉ
   tạo `.env.example` với placeholder.
 - Repo đang **public**. Mọi thứ commit vào đây là công khai trên internet.

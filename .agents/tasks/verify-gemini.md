@@ -133,3 +133,143 @@ Streaming là trải nghiệm tốt, **không phải điều kiện sống còn*
 
 Kiểm tra #1 và #2 tồn tại vì ghi `normalized: true` mà không kiểm chính là cách bug chuẩn
 hoá ở mục 3 lọt lưới.
+
+---
+
+## 6. Bốn giả định "CHƯA KIỂM" của §21.2 — ĐÃ KIỂM THẬT (FEAT-001, 06/11/2026)
+
+> Nguồn: bước implement FEAT-001 chạy thật trên `node_modules` đã cài của chính repo này.
+> Không dùng API key nào (các phép kiểm dưới đây không cần key).
+
+### Phiên bản đã cài (`npm.cmd ls --depth=0`)
+
+| Gói | Phiên bản |
+|---|---|
+| `next` | **15.5.29** |
+| `react` / `react-dom` | 19.3.1 / 19.3.1 |
+| `react-markdown` | **9.1.0** |
+| `remark-gfm` | 4.0.1 |
+| `zod` | 3.25.76 |
+| `gray-matter` | 4.0.3 |
+| `js-yaml` | 4.3.2 |
+| `typescript` | 5.9.3 |
+| `vitest` | 3.2.7 |
+| `tsx` | 4.23.15 |
+| `tailwindcss` | **3.4.19** (v3, KHÔNG phải v4) |
+| `@tailwindcss/typography` | 0.5.20 |
+| `postcss` / `autoprefixer` | 8.5.32 / 10.6.2 |
+| `eslint` / `eslint-config-next` | 8.57.1 / 15.5.29 |
+| `@types/node` | 20.19.43 |
+
+Môi trường chạy: Node **v24.19.0**, npm **11.17.0**, đồng hồ máy **2026-11-06**.
+(`engines.node` vẫn khai `>=20.9.0`, không ghim 24: Vercel Hobby chỉ cấp 20.x/22.x.)
+
+### (i) `react-markdown@9` KHÔNG render raw HTML khi thiếu `rehype-raw` — ✅ ĐÚNG
+
+Render thật bằng `react-dom/server#renderToStaticMarkup` với đầu vào có HTML thô:
+
+```
+Đầu vào:  Xin chào <img src=x onerror="alert(1)">
+          <script>alert(2)</script>
+          <b>đậm bằng HTML thô?</b>  + một bảng GFM
+
+Đầu ra:   <p>Xin chào &lt;img src=x onerror=&quot;alert(1)&quot;&gt;</p>
+          &lt;script&gt;alert(2)&lt;/script&gt;
+          <p>&lt;b&gt;đậm bằng HTML thô?&lt;/b&gt;</p>
+          <table><thead>…</thead><tbody>…</tbody></table>
+```
+
+Đo được: chuỗi `<img` → **không có**; `<script` → **không có**; `<b>` → **không có**;
+`<table>` → **có** (`remark-gfm` hoạt động). Chuỗi `onerror` chỉ còn tồn tại dưới dạng
+**văn bản đã escape** (`onerror=&quot;`), không phải attribute.
+
+> **Kết luận:** chống XSS mặc định là THẬT. **Tuyệt đối không thêm `rehype-raw`** — thêm nó
+> là tự tay mở lại lỗ hổng này.
+
+### (ii) `outputFileTracingIncludes` ở TOP-LEVEL `next.config.ts` của Next 15 — ✅ ĐÚNG
+
+Ba phép kiểm độc lập trên Next 15.5.29:
+
+1. `next/dist/server/config.js#loadConfig('phase-production-build', cwd)` trả về
+   `outputFileTracingIncludes` **ở top-level** với đúng hai khoá `/api/chat` và
+   `/api/health`; `experimental.outputFileTracingIncludes` là `undefined`.
+   `output` = `"standalone"` được nhận đúng.
+2. `next/dist/server/config-schema.js#configSchema.safeParse(...)`: top-level
+   `outputFileTracingIncludes` ⇒ `success: true`; cùng khoá **gõ sai một chữ** ⇒
+   `success: false`. Phép kiểm thứ hai chứng minh schema thật sự validate, nên kết quả
+   thứ nhất không phải là "Next bỏ qua khoá lạ".
+3. `npm.cmd run build` chạy xong (**exit 0**), không có cảnh báo
+   `Invalid next.config.ts options detected`.
+
+> Dòng `/api/health` là bắt buộc (R2-M10): mỗi function trên Vercel có bundle RIÊNG, thiếu
+> nó thì `/api/health` báo `index.present=false` trên đúng bản deploy mà `/api/chat` chạy
+> bình thường.
+
+### (iii) `NextRequest.ip` đã bị bỏ ở Next 15 — ✅ ĐÚNG (và `geo` cũng mất)
+
+Dựng `new NextRequest(url, { headers: { 'x-forwarded-for': '203.0.113.9, 10.0.0.1' } })`:
+
+| Phép kiểm | Kết quả |
+|---|---|
+| `'ip' in req` | **false** |
+| `req.ip` | **undefined** |
+| `'geo' in req` | **false** |
+| `req.headers.get('x-forwarded-for')` | `"203.0.113.9, 10.0.0.1"` — đọc được bình thường |
+| `node_modules/next/dist/server/web/spec-extension/request.d.ts` | không còn khai báo `ip`; chỉ còn `cookies`, `nextUrl`, `page` (deprecated), `ua` (deprecated), `url` |
+
+> **Kết luận:** cách lấy IP duy nhất là đọc header `x-forwarded-for`, nên thiết kế §13.4 là
+> đúng và quyết định M13 (`TRUSTED_PROXY` + backstop toàn cục khi không tin header) vẫn
+> giữ nguyên. API `Request` chuẩn **không** cho biết IP tầng giao vận, nên phương án
+> "dùng IP kết nối thật" mà review vòng 2 đề xuất xác nhận là **không hiện thực được**.
+
+### (iv) Trần `maxDuration` của Vercel Hobby — ⚠️ **KHÁC** giả định 60s: thực tế **300s**
+
+Nguồn: [Vercel Functions limits](https://vercel.com/docs/functions/limitations) (đọc ngày
+06/11/2026). Với Fluid compute (bật mặc định cho project mới), bảng thời lượng là:
+
+| Gói | Mặc định | Tối đa | Tối đa mở rộng |
+|---|---|---|---|
+| **Hobby** | **300s** | **300s** | — |
+| Pro / Enterprise | 300s | 800s | 1800s (beta) |
+
+Mốc 60s của §21.2 là trần **cũ** của free tier — nó đến từ
+[changelog 05/2024](https://vercel.com/changelog/vercel-functions-for-hobby-can-now-run-up-to-60-seconds)
+("tăng từ 10s lên tối đa 60s"), và đã được thay bằng mặc định/trần 300s.
+*Nội dung đã được diễn đạt lại để tuân thủ điều khoản sử dụng của nguồn.*
+
+#### Quyết định: **DEADLINE_MS giữ 50 000 ms**, và route khai tường minh `maxDuration = 60`
+
+Áp nguyên văn công thức "`DEADLINE_MS` = trần − 10s" sẽ cho **290 000 ms**. Không chọn, vì:
+
+1. Trần 300s là **trần nền tảng**, còn `maxDuration` là **giá trị cấu hình được** của dự
+   án. Giả định ngầm của công thức là "Hobby *ép* 60s nên phải lấy sát trần"; giả định đó
+   không còn đúng, nên kết luận của nó cũng không còn hiệu lực.
+2. `LLM_ATTEMPT_TIMEOUT_MS` có khoảng hợp lệ 5000–45000 với lý do ghi rõ ở §6.1 là
+   *"45s + `RESERVE_MS` đã sát trần"* — câu đó chỉ đúng khi deadline tổng là 50s.
+3. Với deadline 290s, `canRetry` **không bao giờ** chặn được gì (chuỗi 4 lần thử tối đa
+   chỉ ~95s), tức toàn bộ cơ chế [M10] thành vô tác dụng, và một request trên hạn mức
+   miễn phí được phép chạy tới 5 phút trong khi UX §14.2 ("chờ" / "gọi IT") được thiết kế
+   để báo lỗi NHANH.
+
+Đây là áp **quy tắc phân định số 3** (chọn phương án an toàn hơn) — ghi vào
+`docs/MAPPING.md`. Hiện thực: hằng sống ở **một chỗ duy nhất** là
+`lib/util/http.ts`:
+
+```ts
+export const VERCEL_MAX_DURATION_S = 60;   // route khai `export const maxDuration = 60`
+export const DEADLINE_MS = 50_000;
+if (DEADLINE_MS + 5_000 > VERCEL_MAX_DURATION_S * 1_000) throw new Error(...);
+```
+
+Assertion `DEADLINE_MS + 5s <= maxDuration*1000` chạy **lúc nạp module** (không phải lúc
+request) và có unit test chốt. **Việc còn lại cho FEAT tạo `app/api/chat/route.ts`:** khai
+`export const maxDuration = 60;` — thiếu dòng đó thì hàm nhận mặc định 300s của nền tảng và
+hai con số không còn khớp nhau.
+
+### Hạng mục §21.2 còn treo sau FEAT-001
+
+| # | Hạng mục | Trạng thái |
+|---|---|---|
+| 4 | Endpoint `:streamGenerateContent?alt=sse` | ⚠️ **CÒN TREO** — cần key thật để thử lại có backoff. Đã có đường hạ cấp §6.2.1, đã test bằng mock: SSE 503 ⇒ tự gọi `:generateContent` và vẫn phát đúng chuỗi NDJSON với `meta.streaming === false`. |
+| 9 | Heuristic `ceil(chars/3.5)` | ⚠️ **CHƯA ĐO** — cần `usageMetadata` của Gemini trên 10 chunk thật. Hằng khu trú ở `lib/util/tokens.ts#CHARS_PER_TOKEN`. |
+| 5 / 1–2 ở mục 5 trên | Chuẩn L2 của vector trong index đã ghi | ⚠️ **CHƯA CHẠY ĐƯỢC** — chưa có `data/kb-index.json` (chưa ingest, và bước workflow không có key). Phải chạy trước khi ghi `normalized: true`. |
