@@ -89,11 +89,45 @@ có chuẩn 1 (đặc tính Matryoshka). Hệ quả bắt buộc:
   normalize và kiểm tra lại**, không ghi theo ý định.
 - Không trộn hai cách tính: hoặc normalize rồi dùng dot product, hoặc luôn tính cosine đầy đủ.
 
-### Chưa xác minh được
+### Streaming SSE — ĐÃ XÁC MINH HOẠT ĐỘNG (đo 06/11/2026)
 
-- `:streamGenerateContent?alt=sse` trả **503** lúc đo → chưa kết luận được endpoint
-  đúng hay sai. Phải thử lại có backoff. Adapter **phải tự hạ xuống chế độ không streaming**
-  nếu SSE lỗi, để UI không chết vì một tính năng trải nghiệm.
+`POST v1beta/models/gemini-3.5-flash:streamGenerateContent?alt=sse&key=<KEY>`
+⇒ **HTTP 200**, `content-type: text/event-stream`, nhiều frame `data: {...}`, ghép lại ra
+nội dung tiếng Việt đúng. Lỗi 503 lần đo trước chỉ là tạm thời. Vẫn giữ yêu cầu adapter
+tự hạ xuống `generateContent` khi SSE lỗi, vì 503 có thể quay lại bất cứ lúc nào.
+
+**Bẫy khi parse frame:** frame cuối có thể mang `parts[0].text` **rỗng** kèm field
+`thoughtSignature`. Parser phải bỏ qua frame không có text thay vì coi đó là lỗi hoặc
+kết thúc sớm. Mỗi frame cũng mang `usageMetadata` riêng — lấy số của frame cuối, đừng cộng dồn.
+
+### Thinking tokens — ảnh hưởng lớn tới độ trễ và quota (đo 06/11/2026)
+
+`gemini-3.5-flash` **mặc định suy nghĩ nội bộ**, và với câu hỏi đơn giản thì phần suy nghĩ
+áp đảo phần trả lời. Cùng một câu hỏi, đo thật:
+
+| Cấu hình | Độ trễ | output | thoughts | TOTAL |
+|---|---|---|---|---|
+| mặc định | **8,2 s** | 55 | 502 | **582** |
+| `thinkingBudget: 0` | **2,6 s** | 37 | — | **62** |
+| `thinkingBudget: 128` | 4,0 s | 39 | 343 | 407 |
+
+Đặt trong `generationConfig.thinkingConfig.thinkingBudget`.
+
+- `thinkingBudget: 0` được chấp nhận ⇒ **nhanh 3,2 lần, tốn ít token 9,4 lần**.
+- `thinkingBudget: 128` **KHÔNG được tôn trọng** (xin 128, dùng 343) ⇒ chỉ coi là gợi ý.
+  Muốn chắc chắn thì dùng 0; đừng tin các giá trị trung gian.
+- `usageMetadata.thoughtsTokenCount` là nơi đọc số token suy nghĩ; nó **vắng mặt** khi
+  budget = 0, nên code phải coi field này là optional.
+
+**Phải cấu hình được qua env (`GEMINI_THINKING_BUDGET`), mặc định 0**, và KHÔNG hard-code.
+Lý do cần đổi được: đề án Ch.2.1 có use case *"phân tích tình huống dựa trên dữ liệu người
+dùng cung cấp, đồng thời nêu rõ giả định và dữ liệu còn thiếu"* — đó là loại câu hỏi mà suy
+luận giúp ích. Còn câu tra cứu và tóm tắt tài liệu đã truy xuất thì không cần, vì context đã
+làm phần việc nặng. Khi tắt suy nghĩ, câu trả lời ngắn lại (đo được 169 → 101 ký tự), nên
+nếu thấy chất lượng giảm ở câu phân tích thì tăng budget cho riêng nhánh đó, đừng tắt toàn cục.
+
+Với người dùng là nhân viên trang trại dùng điện thoại, 2,6 s so với 8,2 s là khác biệt
+giữa dùng được và khó dùng.
 
 ## Bảo mật — tuyệt đối
 
